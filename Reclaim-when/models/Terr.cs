@@ -1,4 +1,4 @@
-﻿namespace Reclaim_when
+﻿namespace Reclaim_when.models
 {
     public interface Terr
     {

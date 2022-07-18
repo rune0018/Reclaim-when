@@ -22,4 +22,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+Timer Autoevent = new Timer(Reclaim_when.Controllers.Reclaim.InitialLoop);
+Autoevent.Change(0, 60000);
+
 app.Run();
+
