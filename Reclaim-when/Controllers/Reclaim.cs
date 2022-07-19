@@ -131,7 +131,17 @@ namespace Reclaim_when.Controllers
         [NonAction]
         public async void DiscordMessege(DiscordHook dis)
         {
-            HttpResponseMessage response = await _httpClient.PostAsJsonAsync("https://discord.com/api/webhooks/998286387155570738/mRC1jfhTkixHBlcgE2RYC7Kr9UYxEZLcR3O4hAkmmsg-fZmYjr0o5bw5-P9OyjoY_Irw",dis);
+            string result = "";
+            using (StreamReader s = new StreamReader("../Secrets.txt"))
+            {
+                string line;
+                while ((line = s.ReadLine()) != null)
+                {
+                    result += line;
+                }
+            }
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(result,dis);
+            response.EnsureSuccessStatusCode();
         }
 
         [NonAction]
