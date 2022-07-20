@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Reclaim_when.models;
 using System.Net.Http.Json;
+using Reclaim_when.Data;
 
 namespace Reclaim_when.Controllers
 {
@@ -53,7 +54,7 @@ namespace Reclaim_when.Controllers
                 }
             }
 
-            if (reclaimNeeded && DateTime.Compare(_lastPing,DateTime.Now.AddSeconds(10)) == -1)
+            if (reclaimNeeded && StaticVars.Ping)
             {
                 _lastPing = DateTime.Now;
                 Console.WriteLine($"Reclaim {whatToReclaim}");
@@ -70,6 +71,7 @@ namespace Reclaim_when.Controllers
                         }
                     }
                     );
+
                 DiscordMessege(discordHook);
                 return Ok($"Yes Reclaim {whatToReclaim}");
             }
@@ -96,35 +98,6 @@ namespace Reclaim_when.Controllers
             _Terrobserve.Add(_terrReqData.territories.HerbCave);
             _Terrobserve.Add(_terrReqData.territories.GreatBridgeJungle);
             _Terrobserve.Add(_terrReqData.territories.GreatBridgeNesaak);
-            _Terrobserve.Add(_terrReqData.territories.NivlaWoodsExit);
-            _Terrobserve.Add(_terrReqData.territories.GelibordCastle);
-        }
-
-        [NonAction]
-        public static async Task<List<Terr>> setupStatic()
-        {
-            List<Terr> l = new List<Terr>();
-            HttpResponseMessage response = await _httpClient.GetAsync("https://api.wynncraft.com/public_api.php?action=territoryList");
-            response.EnsureSuccessStatusCode();
-            //_terrReq = response.Content.ReadFromJsonAsync<TerrReq>().GetAwaiter().GetResult();
-            var json = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-
-            TerrReq _terrReqData = JsonConvert.DeserializeObject<TerrReq>(json);
-            l.Add(_terrReqData.territories.SouthPigmenRavines);
-            l.Add(_terrReqData.territories.LittleWood);
-            l.Add(_terrReqData.territories.CityOfTroms);
-            l.Add(_terrReqData.territories.TempleOfLegends);
-            l.Add(_terrReqData.territories.JungleLake);
-            l.Add(_terrReqData.territories.JungleLower);
-            l.Add(_terrReqData.territories.JungleMid);
-            l.Add(_terrReqData.territories.JungleUpper);
-            l.Add(_terrReqData.territories.DernelJungleLower);
-            l.Add(_terrReqData.territories.DernelJungleMid);
-            l.Add(_terrReqData.territories.DernelJungleUpper);
-            l.Add(_terrReqData.territories.HerbCave);
-            l.Add(_terrReqData.territories.GreatBridgeJungle);
-            l.Add(_terrReqData.territories.GreatBridgeNesaak);
-            return l;
         }
 
 
@@ -144,49 +117,15 @@ namespace Reclaim_when.Controllers
             response.EnsureSuccessStatusCode();
         }
 
-        [NonAction]
-        public static async void InitialLoop(object hell)
+        [HttpPost]
+        public async Task<IActionResult> Post(string command)
         {
-            string attackers = "";
-            const string observing = "Gang of Fools";
-            List<Terr> _Terrobserve = setupStatic().Result;
-            DiscordHook discordHook = new DiscordHook();
-            bool reclaimNeeded = false;
-            string whatToReclaim = "";
-            foreach (Terr terr in _Terrobserve)
+            if (command == "Reset")
             {
-                if (terr.guild != observing)
-                {
-                    //bliver ramt når noget ikke matcher hvad vi har
-                    whatToReclaim += terr.territory + " ,\n";
-                    reclaimNeeded = true;
-                    if (!attackers.Contains(terr.guild))
-                    {
-                        attackers += terr.guild + " ,";
-                    }
-                }
+                StaticVars.Ping = true;
+                return Ok();
             }
-
-            if (reclaimNeeded && DateTime.Compare(_lastPing, DateTime.Now.AddSeconds(10)) == 1)
-            {
-                _lastPing = DateTime.Now;
-                Console.WriteLine($"Reclaim {whatToReclaim}");
-                long roleid = 934871908346908682;
-                //discordHook.content = $"<@&{roleid}> {whatToReclaim}";
-                discordHook.content = $"Reclaim: {whatToReclaim} From {attackers}";
-                discordHook.embeds.Add(
-                    new Embed
-                    {
-                        color = 16711680,
-                        image = new Image
-                        {
-                            url = "https://media.discordapp.net/attachments/865036089257623592/884971677258248192/image0.gif"
-                        }
-                    }
-                    );
-                new Reclaim().DiscordMessege(discordHook);
-            }
-            Console.WriteLine("intet fundet");
+            return Ok(command);
         }
         //discord sent
   //      {
